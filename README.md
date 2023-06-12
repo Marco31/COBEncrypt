@@ -1,2 +1,4 @@
 # COBEncrypt
-Application to Encrypt data (Caesar)
+COBEncrypt is a list of tools for cryptography:
+- Caesar's code
+- LFSR
