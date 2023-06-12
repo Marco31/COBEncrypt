@@ -1,6 +1,6 @@
       ************************************************************
 
-      *  Toolbox for cryptography                             *
+      *  Toolbox for cryptography                                *
       
       *  compile with : cobc -x main.cbl -o build/main           *
 
