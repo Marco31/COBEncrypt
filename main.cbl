@@ -51,6 +51,12 @@
            05  XOR-INPUT-1 PIC 9(1) COMP.
            05  XOR-INPUT-2 PIC 9(1) COMP.
            05  XOR-OUTPUT PIC 9(1) COMP.
+       LINKAGE SECTION.
+       01  PARAMETER.
+           05  LK-PLAINTXT    PIC X(200).
+           05  LK-ENCRYPTTXT  PIC X(200).
+           05  LK-CAESAR-SETTING  PIC 9(2) VALUE 99.
+
 
        PROCEDURE DIVISION.
        MD01 SECTION.
@@ -70,7 +76,7 @@
                PERFORM MD10-CAESAR
            WHEN 2
                PERFORM MD11-LFSR
-           WHEN 4
+           WHEN 3
                DISPLAY "EXITING..."
            WHEN OTHER
                DISPLAY "UNKNOWN INPUT"
@@ -90,7 +96,16 @@
        EXIT.
 
        MD10-CAESAR-ENCRYPTION.
-       MOVE PLAINTXT TO ENCRYPTTXT
+       ENTRY "SM-CAESAR" USING PARAMETER.
+       IF LK-CAESAR-SETTING NOT = 99
+           THEN
+               MOVE LK-PLAINTXT TO PLAINTXT
+               MOVE LK-CAESAR-SETTING TO CAESAR-SETTING
+               MOVE PLAINTXT TO ENCRYPTTXT
+               MOVE "TEST" TO PLAINTXT
+           ELSE
+               MOVE PLAINTXT TO ENCRYPTTXT
+       END-IF
        INSPECT ENCRYPTTXT
            CONVERTING "abcdefghijklmnopqrstuvwxyz"
            TO "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -198,7 +213,20 @@
                    CONVERTING "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                    TO "ZABCDEFGHIJKLMNOPQRSTUVWXY"
            WHEN OTHER
+               DISPLAY "Other"
                MOVE PLAINTXT TO ENCRYPTTXT
+       END-EVALUATE.
+       
+      * DISPLAY PLAINTXT.
+
+       IF PLAINTXT = "TEST"
+           THEN
+               MOVE ENCRYPTTXT TO LK-ENCRYPTTXT
+      *     ELSE
+      *         DISPLAY PLAINTXT "!= TEST"
+       END-IF.
+
+       GOBACK.
        EXIT.
 
        MD11-LFSR.
