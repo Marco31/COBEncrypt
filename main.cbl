@@ -22,6 +22,7 @@
        DATA DIVISION.
        FILE SECTION.
        WORKING-STORAGE SECTION.
+       01  MODE-TEST PIC 9(1) COMP VALUE 0.
        01  INPUT-MENU       PIC 9(1).
        01  AREA-CAESAR.
            05  PLAINTXT    PIC X(200).
@@ -30,6 +31,7 @@
       * 8-bit LFSR
        01  AREA-LFSR.
            05  LFSR-A-STATIC.
+               10  IND-IS  PIC 9(5) COMP.
                10  INTERNAL-STATE    PIC 9(1) COMP OCCURS 8 TIMES
                                                INDEXED BY IND-IS.
                10  NB-XOR  PIC 9(1).
@@ -56,6 +58,28 @@
            05  LK-PLAINTXT    PIC X(200).
            05  LK-ENCRYPTTXT  PIC X(200).
            05  LK-CAESAR-SETTING  PIC 9(2) VALUE 99.
+      * 01  PARAMETER-LFSR.
+      *     05  WS-LFSR-A-STATIC.
+      *         10  IND-IS  PIC 9(5) COMP.
+      *         10  WS-INTERNAL-STATE    PIC 9(1) COMP OCCURS 8 TIMES
+      *                                         INDEXED BY IND-IS.
+      *         10  WS-NB-XOR  PIC 9(1).
+      *         10  WS-I   PIC 9(2).
+      *         10  WS-J   PIC 9(2).
+      *         10  WS-NB-GEN  PIC 9(4).
+      *         10  WS-WS-BIT  PIC 9(1).
+      *     05  WS-LFSR-A-STREAM.
+      *         10  WS-LFSR-STREAM     PIC 9(1) OCCURS 1 TO 9999
+      *                                         DEPENDING ON NB-GEN.
+      *         10  WS-LFSR-STREAM-ENC     PIC 9(1) OCCURS 1 TO 9999
+      *                                         DEPENDING ON NB-GEN.
+      * 01 WS-AREA-LFSR-2.
+      *     05  WS-LFSR2-A-STATIC.
+      *         10  WS-IND-XB  PIC 9(2).
+      *     05  WS-LFSR2-A-XOR.
+      *         10  WS-XOR-BITS    PIC 9(1) COMP OCCURS 1 TO 8
+      *                      DEPENDING ON NB-XOR.
+
 
 
        PROCEDURE DIVISION.
@@ -83,21 +107,28 @@
        END-EVALUATE
        EXIT.
 
+       MD10-PRE-TEST.
+       ENTRY "PRE-TEST".
+       MOVE 1 TO MODE-TEST.
+       GOBACK.
+
+
        MD10-CAESAR.
        DISPLAY "***************CAESAR***************"
        DISPLAY "Input Ceaser setting"
        ACCEPT CAESAR-SETTING from Name-Input.
        DISPLAY "Input string"
        ACCEPT PLAINTXT from Name-Input.
-       DISPLAY CAESAR-SETTING
-       DISPLAY PLAINTXT
+
+       DISPLAY " "
        PERFORM MD10-CAESAR-ENCRYPTION
        DISPLAY ENCRYPTTXT        
        EXIT.
 
        MD10-CAESAR-ENCRYPTION.
-       ENTRY "SM-CAESAR" USING PARAMETER.
-       IF LK-CAESAR-SETTING NOT = 99
+       ENTRY "TEST-CAESAR" USING PARAMETER.
+
+       IF MODE-TEST = 1
            THEN
                MOVE LK-PLAINTXT TO PLAINTXT
                MOVE LK-CAESAR-SETTING TO CAESAR-SETTING
@@ -106,6 +137,7 @@
            ELSE
                MOVE PLAINTXT TO ENCRYPTTXT
        END-IF
+
        INSPECT ENCRYPTTXT
            CONVERTING "abcdefghijklmnopqrstuvwxyz"
            TO "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -217,16 +249,15 @@
                MOVE PLAINTXT TO ENCRYPTTXT
        END-EVALUATE.
        
-      * DISPLAY PLAINTXT.
 
-       IF PLAINTXT = "TEST"
+       IF MODE-TEST = 1
            THEN
                MOVE ENCRYPTTXT TO LK-ENCRYPTTXT
+               GOBACK
       *     ELSE
       *         DISPLAY PLAINTXT "!= TEST"
        END-IF.
 
-       GOBACK.
        EXIT.
 
        MD11-LFSR.
@@ -272,11 +303,19 @@
 
        PERFORM MD11-LFRS-STREAM
        DISPLAY "Here is your LFSR Stream"
+
+       ENTRY "TEST-LFSR" USING PARAMETER.
        PERFORM     VARYING I
                    FROM 0 BY 1
                    UNTIL I >= NB-GEN
                DISPLAY LFSR-STREAM(I)
        END-PERFORM
+
+       IF MODE-TEST = 1
+           THEN
+           GOBACK
+       END-IF
+
        EXIT.
 
        MD11-LFRS-STREAM.
